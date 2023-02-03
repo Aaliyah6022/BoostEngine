@@ -17,7 +17,7 @@ Additionally, BoostEngine includes a JSON configuration file, which can be modif
 ## Installation
 - Download BoostEngine from the releases section of the GitHub repository.
 - Run the application and follow the on-screen instructions to complete the installation.
-- (Optional) Use BoostEngineDev.py to modify the JSON configuration file.
+- (Optional) Use BoostEngineHelper.py to modify the JSON configuration file.
 
 ## Contributing
 We welcome contributions from the community to make BoostEngine even better.
