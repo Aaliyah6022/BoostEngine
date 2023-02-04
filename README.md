@@ -11,7 +11,8 @@ BoostEngine is a powerful tool designed to optimize your computer for gaming per
 ## Usage
 To use BoostEngine, simply download and run the application.
 It will perform various system checks and adjust settings to ensure maximum performance.
-Additionally, BoostEngine includes a JSON configuration file, which can be modified to fit your needs. Check [BoostEngine.pdf](https://github.com/Aaliyah6022/BoostEngine/files/10580220/BoostEngine.pdf)
+Additionally, BoostEngine includes a JSON configuration file, which can be modified to fit your needs. Check [BoostEngine.pdf](https://github.com/Aaliyah6022/BoostEngine/files/10608942/BoostEngine.pdf)
+
  for more informations.
 
 ## Installation
