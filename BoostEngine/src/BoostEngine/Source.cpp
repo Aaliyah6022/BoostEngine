@@ -6,11 +6,13 @@
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
+const std::string config_path = "C:\\Program Files\\BoostEngine\\terminate.json";
 
 int main()
 {
-    std::ifstream file("C:\\Program Files\\BoostEngine\\terminate.json");
+    std::ifstream file(config_path);
 	json data;
+
     if (file.is_open())
     {
         file >> data;
@@ -76,6 +78,8 @@ int main()
         return 0;
     }
 #pragma warning(pop)
+
+
     std::vector<std::string> found_processes;
     std::vector<std::string> not_found_processes;
 
@@ -133,7 +137,6 @@ int main()
             not_found_processes.push_back(process_full_name);
         } 
     }
-
 
     // Services
     for (const auto& service : data["services"])
@@ -203,6 +206,8 @@ int main()
         }
     }
 
+    
+
     // Debug Print
     std::cout << "____________________________________________" << std::endl;
 
@@ -237,11 +242,24 @@ int main()
     }
 #endif
 
-    // run cleanmgr.exe ????
-    system("cleanmgr.exe /sagerun:4 /verbose");
+    std::cout << "Running disk cleanup...\n";
+    system("cleanmgr.exe /sagerun:1");
 
+    // Disable hibernation
+    std::cout << "Disabling hibernation...\n";
+    system("powercfg /hibernate off");
+
+    // Clear windows event logs
+    system("wevtutil.exe cl Application");
+    system("wevtutil.exe cl Security");
+    system("wevtutil.exe cl System");
+
+    // Clear DNS cache
+    system("ipconfig /flushdns");
 
     MessageBoxA(0, "BoostEngine finished!", "Success", 0);
 
+
+    SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
     return 0;
 }
