@@ -3,19 +3,6 @@
 #include "LunaLogger.hpp"
 #include "json.hpp"
 
-#include <iostream>
-#include <Windows.h>
-#include <TlHelp32.h>
-#include <fstream>
-#include <filesystem>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <algorithm>
-#include <iterator>
-#include <thread>
-#include <chrono>
-#include <wininet.h>
 
 using json = nlohmann::json;
 namespace fs = std::filesystem;
@@ -27,31 +14,34 @@ int main()
     if (file.is_open())
     {
         file >> data;
-        std::cout << "File found and loaded successfully." << std::endl;
+        LunaLogger::log(LogLevel::Info, std::string(__FILE__), __LINE__, "BoostEngine config found!");
     }
+#pragma warning(push)
+#pragma warning(disable:4129 4101)
     else
     {
-        std::cout << "File not found." << std::endl;
+        LunaLogger::log(LogLevel::Warning, std::string(__FILE__), __LINE__, "BoostEngine config not found! Downloading newest config from Github...");
+
         if (!fs::exists("C:\\Program Files\\BoostEngine"))
         {
             if (!fs::create_directory("C:\\Program Files\\BoostEngine"))
             {
-                std::cout << "Error creating directory: C:\\Program Files\\BoostEngine" << std::endl;
+                LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Error creating directory: C:\Program Files\BoostEngine");
                 return 1;
             }
-            std::cout << "New folder created: C:\\Program Files\\BoostEngine" << std::endl;
+            LunaLogger::log(LogLevel::Warning, std::string(__FILE__), __LINE__, "New folder created: C:\Program Files\BoostEngine");
         }
 
         HINTERNET hIntSession = InternetOpenA("Wininet Example/1.0", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
         if (hIntSession == NULL)
         {
-            std::cout << "Error opening Internet session." << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Error opening Internet session");
             return 1;
         }
         HINTERNET hHttpSession = InternetOpenUrlA(hIntSession, "https://raw.githubusercontent.com/Aaliyah6022/BoostEngine/main/Config/terminate.json", NULL, 0, INTERNET_FLAG_RELOAD, 0);
         if (hHttpSession == NULL)
         {
-            std::cout << "Error opening URL." << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Error opening URL");
             InternetCloseHandle(hIntSession);
             return 1;
         }
@@ -62,7 +52,7 @@ int main()
         {
             if (!InternetReadFile(hHttpSession, &buffer[0], static_cast<DWORD>(buffer.size()), &bytesRead))
             {
-                std::cout << "Error reading data." << std::endl;
+                LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Error reading data");
                 InternetCloseHandle(hHttpSession);
                 InternetCloseHandle(hIntSession);
                 return 1;
@@ -77,15 +67,15 @@ int main()
         std::ofstream f("C:\\Program Files\\BoostEngine\\terminate.json");
         if (!f.is_open())
         {
-            std::cout << "Error opening file for writing." << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Error opening file for writing");
             return 1;
         }
         f << is.rdbuf();
 
-        std::cout << "Config file successfully downloaded. Please close and run the program again." << std::endl;
+        LunaLogger::log(LogLevel::Warning, std::string(__FILE__), __LINE__, "Config file successfully downloaded. Please close and run the program again");
         return 0;
     }
-
+#pragma warning(pop)
     std::vector<std::string> found_processes;
     std::vector<std::string> not_found_processes;
 
@@ -100,7 +90,7 @@ int main()
         HANDLE hProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
         if (hProcess == INVALID_HANDLE_VALUE)
         {
-            std::cerr << "Error: Could not create toolhelp snapshot" << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Could not create toolhelp snapshot");
             continue;
         }
 
@@ -108,7 +98,7 @@ int main()
         pe.dwSize = sizeof(PROCESSENTRY32);
         if (!Process32First(hProcess, &pe))
         {
-            std::cerr << "Error: Could not retrieve first process" << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Could not retrieve first process");
             CloseHandle(hProcess);
             continue;
         }
@@ -127,7 +117,7 @@ int main()
                 }
                 else
                 {
-                    std::cerr << "Error: Could not open process" << std::endl;
+                    LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Could not open process");
                 }
             }
         } while (Process32Next(hProcess, &pe));
@@ -152,14 +142,14 @@ int main()
         SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
         if (hSCManager == NULL)
         {
-            std::cerr << "Error: Could not open Service Control Manager" << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Could not open Service Control Manager");
             continue;
         }
 
         SC_HANDLE hService = OpenService(hSCManager, service_name.c_str(), SERVICE_STOP | SERVICE_QUERY_STATUS);
         if (hService == NULL)
         {
-            std::cerr << "Error: Could not open service" << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Could not open service");
             CloseServiceHandle(hSCManager);
             continue;
         }
@@ -168,7 +158,8 @@ int main()
         DWORD dwBytesNeeded;
         if (!QueryServiceStatusEx(hService, SC_STATUS_PROCESS_INFO, (LPBYTE)&ssStatus, sizeof(SERVICE_STATUS_PROCESS), &dwBytesNeeded))
         {
-            std::cerr << "Error: Could not query service status" << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Could not query service status");
+
             CloseServiceHandle(hService);
             CloseServiceHandle(hSCManager);
             continue;
@@ -185,7 +176,7 @@ int main()
         SERVICE_STATUS ss;
         if (!ControlService(hService, SERVICE_CONTROL_STOP, &ss))
         {
-            std::cerr << "Error: Could not control service" << std::endl;
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Could not control service");
             CloseServiceHandle(hService);
             CloseServiceHandle(hSCManager);
             continue;
@@ -196,36 +187,61 @@ int main()
         CloseServiceHandle(hSCManager);
     }
 
+    // Directories
+    for (const auto& directory : data["directories"])
+    {
+        std::string directory_name = directory;
+        try
+        {
+            fs::remove_all(directory_name);
+        }
+        catch (const std::exception& e)
+        {
+            //std::cerr << "Error deleting directory " << directory_name << ": " << e.what() << '\n';
+            LunaLogger::log(LogLevel::Error, std::string(__FILE__), __LINE__, "Error deleting director");
+            (void)e;
+        }
+    }
 
     // Debug Print
     std::cout << "____________________________________________" << std::endl;
-    std::cout << "Found processes:" << std::endl;
+
+    std::cout << "Closed processes:" << std::endl;
     for (const auto& process : found_processes)
     {
         std::cout << process << std::endl;
     }
     std::cout << "____________________________________________" << std::endl;
+
+#if 0
     std::cout << "Not found processes:" << std::endl;
     for (const auto& process : not_found_processes)
     {
         std::cout << process << std::endl;
     }
-
-
-
     std::cout << "____________________________________________" << std::endl;
-    std::cout << "Found services:" << std::endl;
+#endif
+
+    std::cout << "Closed services:" << std::endl;
     for (const auto& service : found_services)
     {
         std::cout << service << std::endl;
     }
     std::cout << "____________________________________________" << std::endl;
+
+#if 0
     std::cout << "Not found services:" << std::endl;
     for (const auto& service : not_found_services)
     {
         std::cout << service << std::endl;
     }
+#endif
 
+    // run cleanmgr.exe ????
+    system("cleanmgr.exe /sagerun:4 /verbose");
+
+
+    MessageBoxA(0, "BoostEngine finished!", "Success", 0);
 
     return 0;
 }

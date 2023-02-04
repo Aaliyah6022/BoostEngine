@@ -75,5 +75,17 @@
         "WaaSMedicSvc",
         "WCNCSvc",
         "WMPNetworkSvc"
+    ],
+    "directories": [
+        "C:\\Users\\%username%\\AppData\\Local\\Temp",
+        "C:\\Windows\\Temp",
+        "C:\\Windows\\Prefetch",
+        "C:\\Users\\%username%\\AppData\\Roaming\\Microsoft\\Windows\\Recent Items",
+        "C:\\OneDriveTmp",
+        "C:\\Users\\%username%\\AppData\\Local\\Microsoft\\Windows\\INetCach",
+        "C:\\Windows\\Logs",
+        "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportQueue",
+        "C:\\ProgramData\\Microsoft\\Windows Defender\\Quarantine",
+        "C:\\Windows\\SoftwareDistribution\\Download"
     ]
 }
