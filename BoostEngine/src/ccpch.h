@@ -1,6 +1,7 @@
 #pragma once
 
 #include <windows.h>
+#include <PowrProf.h>
 #include <iostream>
 #include <TlHelp32.h>
 #include <fstream>

@@ -13,3 +13,4 @@ bin-int/
 # Log Files
 *.log
 *.json
+BoostEngine/log.txt

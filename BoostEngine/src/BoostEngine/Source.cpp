@@ -206,7 +206,24 @@ int main()
         }
     }
 
-    
+    // Ultimate performance power plam
+    bool ultimate_performance = data["enable_ultimate_performance"];
+    if (ultimate_performance)
+    {
+        system("powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61");
+        system("powercfg.exe /setactive e9a42b02-d5df-448d-aa00-03f14749eb61");
+    }
+
+    // High performance power plan
+    bool enable_high_performance = data["enable_high_performance"];
+    if (enable_high_performance)
+    {
+        if (ultimate_performance == false)
+        {
+            LunaLogger::log(LogLevel::Info, std::string(__FILE__), __LINE__, "Succesfully switched to High performance power plan");
+            DWORD result = PowerSetActiveScheme(0, &GUID_MIN_POWER_SAVINGS);
+        }
+    }
 
     // Debug Print
     std::cout << "____________________________________________" << std::endl;

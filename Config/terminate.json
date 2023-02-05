@@ -87,5 +87,7 @@
         "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportQueue",
         "C:\\ProgramData\\Microsoft\\Windows Defender\\Quarantine",
         "C:\\Windows\\SoftwareDistribution\\Download"
-    ]
+    ],
+    "enable_ultimate_performance": false,
+    "enable_high_performance": true
 }
