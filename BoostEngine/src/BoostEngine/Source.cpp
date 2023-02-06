@@ -8,6 +8,44 @@ using json = nlohmann::json;
 namespace fs = std::filesystem;
 const std::string config_path = "C:\\Program Files\\BoostEngine\\terminate.json";
 
+std::string download_page(const std::string& url) {
+    HINTERNET internet = InternetOpenA("WinInet", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
+    HINTERNET connect = InternetOpenUrlA(internet, url.c_str(), NULL, 0, INTERNET_FLAG_RELOAD, 0);
+    char buffer[1024];
+    std::string content;
+    DWORD read_bytes;
+    while (InternetReadFile(connect, buffer, sizeof(buffer) - 1, &read_bytes) && read_bytes > 0) {
+        buffer[read_bytes] = '\0';
+        content += buffer;
+    }
+    InternetCloseHandle(connect);
+    InternetCloseHandle(internet);
+    return content;
+}
+
+std::string get_latest_version() {
+    std::string repo_owner = "Aaliyah6022";
+    std::string repo_name = "BoostEngine";
+    std::string url = "https://api.github.com/repos/Aaliyah6022/BoostEngine/tags";
+    std::string content = download_page(url);
+    std::vector<std::string> tags;
+    size_t start_pos = 0;
+    while (true) {
+        size_t name_start = content.find("\"name\":", start_pos);
+        if (name_start == std::string::npos) {
+            break;
+        }
+        name_start += 8;
+        size_t name_end = content.find("\",", name_start);
+        tags.push_back(content.substr(name_start, name_end - name_start));
+        start_pos = name_end + 2;
+    }
+    std::sort(tags.begin(), tags.end(), [](const std::string& a, const std::string& b) {
+        return a > b;
+        });
+    return tags.empty() ? "" : tags[0];
+}
+
 struct LinkedListNode {
     int data;
     LinkedListNode* next;
@@ -117,6 +155,22 @@ int main()
         return 0;
     }
 #pragma warning(pop)
+
+    std::string latest_version = get_latest_version();
+    if (latest_version.empty()) {
+        std::cout << "No releases found." << std::endl;
+    }
+    else {
+        std::string current_version = "v0.1.0-beta";
+        if (latest_version > current_version) {
+            std::cout << "Version " + latest_version + " is now available! You can download it here: https://github.com/Aaliyah6022/BoostEngine/releases" << std::endl;
+            std::cout << "Press any key if you want to continue using your version..." << std::endl;
+            getchar();
+        }
+        else {
+            std::cout << "You have the latest version." << std::endl;
+        }
+    }
 
 
     std::vector<std::string> found_processes;
