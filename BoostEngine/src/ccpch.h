@@ -17,3 +17,7 @@
 #include <ctime>
 #include <iomanip>
 #include <array>
+#include <tchar.h>
+#include <psapi.h>
+#include <stdio.h>
+#include <stdlib.h>

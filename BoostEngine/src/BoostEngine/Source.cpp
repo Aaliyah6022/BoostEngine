@@ -8,6 +8,58 @@ using json = nlohmann::json;
 namespace fs = std::filesystem;
 const std::string config_path = "C:\\Program Files\\BoostEngine\\terminate.json";
 
+typedef struct node {
+    int data;
+    struct node* next;
+} LinkedListNode;
+
+LinkedListNode* CombineMemoryLists(LinkedListNode* list1, LinkedListNode* list2) {
+    if (!list1 || !list2) {
+        return NULL;
+    }
+
+    LinkedListNode* head = list1;
+    LinkedListNode* current = list1;
+
+    while (current->next != NULL) {
+        current = current->next;
+    }
+
+    current->next = list2;
+
+    return head;
+}
+
+void FreeLinkedList(LinkedListNode* list) {
+    LinkedListNode* current = list;
+    LinkedListNode* next = NULL;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
+void ReduceWorkingSet(DWORD processId)
+{
+    HANDLE processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+    if (processHandle == NULL)
+    {
+        printf("OpenProcess failed, Error code: %d\n", GetLastError());
+        return;
+    }
+
+    if (!EmptyWorkingSet(processHandle))
+    {
+        printf("EmptyWorkingSet failed, Error code: %d\n", GetLastError());
+        CloseHandle(processHandle);
+        return;
+    }
+
+    printf("Working set reduced for process %d\n", processId);
+    CloseHandle(processHandle);
+}
+
 int main()
 {
     std::ifstream file(config_path);
@@ -226,6 +278,78 @@ int main()
         }
     }
 
+    // Reduce Working Set
+    bool working_set = data["reduce_working_set"];
+    if (working_set)
+    {
+        DWORD aProcesses[1024], cbNeeded, cProcesses;
+        if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded))
+        {
+            printf("EnumProcesses failed, Error code: %d\n", GetLastError());
+            return 1;
+        }
+
+        cProcesses = cbNeeded / sizeof(DWORD);
+        for (int i = 0; i < cProcesses; i++)
+        {
+            if (aProcesses[i] != 0)
+            {
+                ReduceWorkingSet(aProcesses[i]);
+            }
+        }
+    }
+
+    // Create Linked List
+    bool linked_list = data["create_linked_list"];
+    if (linked_list)
+    {
+        LinkedListNode* list1 = (LinkedListNode*)malloc(sizeof(LinkedListNode));
+        if (!list1) {
+            printf("Memory allocation failed\n");
+            return 1;
+        }
+        list1->data = 1;
+        list1->next = (LinkedListNode*)malloc(sizeof(LinkedListNode));
+        if (!list1->next) {
+            printf("Memory allocation failed\n");
+            free(list1);
+            return 1;
+        }
+        list1->next->data = 2;
+        list1->next->next = NULL;
+
+        LinkedListNode* list2 = (LinkedListNode*)malloc(sizeof(LinkedListNode));
+        if (!list2) {
+            printf("Memory allocation failed\n");
+            free(list1->next);
+            free(list1);
+            return 1;
+        }
+        list2->data = 3;
+        list2->next = (LinkedListNode*)malloc(sizeof(LinkedListNode));
+        if (!list2->next) {
+            printf("Memory allocation failed\n");
+            free(list2);
+            free(list1->next);
+            free(list1);
+            return 1;
+        }
+        list2->next->data = 4;
+        list2->next->next = NULL;
+
+        LinkedListNode* combined_list = CombineMemoryLists(list1, list2);
+
+        LinkedListNode* current = combined_list;
+        while (current != NULL) {
+            printf("%d\n", current->data);
+            current = current->next;
+        }
+
+        //FreeLinkedList(combined_list);
+        //FreeLinkedList(list2);
+        //FreeLinkedList(list1);
+    }
+
     // Debug Print
     std::cout << "____________________________________________" << std::endl;
 
@@ -236,15 +360,6 @@ int main()
     }
     std::cout << "____________________________________________" << std::endl;
 
-#if 0
-    std::cout << "Not found processes:" << std::endl;
-    for (const auto& process : not_found_processes)
-    {
-        std::cout << process << std::endl;
-    }
-    std::cout << "____________________________________________" << std::endl;
-#endif
-
     std::cout << "Closed services:" << std::endl;
     for (const auto& service : found_services)
     {
@@ -252,13 +367,6 @@ int main()
     }
     std::cout << "____________________________________________" << std::endl;
 
-#if 0
-    std::cout << "Not found services:" << std::endl;
-    for (const auto& service : not_found_services)
-    {
-        std::cout << service << std::endl;
-    }
-#endif
 
     std::cout << "Running disk cleanup...\n";
     system("cleanmgr.exe /sagerun:1");
@@ -275,8 +383,8 @@ int main()
     // Clear DNS cache
     system("ipconfig /flushdns");
 
-    MessageBoxA(0, "BoostEngine finished!", "Success", 0);
-
+    printf("Press any key to exit...\n");
+    getchar();
 
     SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
     return 0;
