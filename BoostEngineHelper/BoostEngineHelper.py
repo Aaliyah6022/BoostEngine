@@ -25,7 +25,7 @@ processes = set()
 for process in psutil.process_iter():
     try:
         process_name = process.name()
-        if not process_name.startswith("svchost") and process_name.endswith(".exe"):
+        if not any(process_name.startswith(prefix) for prefix in ["svchost", "winlogon", "smss", "services", "lsass", "csrss", "rundll32", "WmiPrvSE", "trustedinstaller"]) and process_name.endswith(".exe"):
             processes.add(process.name())
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         logger.error(f"Failed to retrieve information about process {process}")
