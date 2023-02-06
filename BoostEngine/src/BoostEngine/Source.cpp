@@ -8,36 +8,23 @@ using json = nlohmann::json;
 namespace fs = std::filesystem;
 const std::string config_path = "C:\\Program Files\\BoostEngine\\terminate.json";
 
-typedef struct node {
+struct LinkedListNode {
     int data;
-    struct node* next;
-} LinkedListNode;
+    LinkedListNode* next;
+    LinkedListNode(int data) : data(data), next(NULL) {}
+    ~LinkedListNode() {
+        delete next;
+    }
+};
 
 LinkedListNode* CombineMemoryLists(LinkedListNode* list1, LinkedListNode* list2) {
-    if (!list1 || !list2) {
-        return NULL;
-    }
-
     LinkedListNode* head = list1;
-    LinkedListNode* current = list1;
-
-    while (current->next != NULL) {
-        current = current->next;
+    LinkedListNode* tail = list1;
+    while (tail->next != NULL) {
+        tail = tail->next;
     }
-
-    current->next = list2;
-
+    tail->next = list2;
     return head;
-}
-
-void FreeLinkedList(LinkedListNode* list) {
-    LinkedListNode* current = list;
-    LinkedListNode* next = NULL;
-    while (current != NULL) {
-        next = current->next;
-        free(current);
-        current = next;
-    }
 }
 
 void ReduceWorkingSet(DWORD processId)
@@ -299,55 +286,28 @@ int main()
         }
     }
 
+    printf("\nCreate Linked list...\n");
+
     // Create Linked List
     bool linked_list = data["create_linked_list"];
     if (linked_list)
     {
-        LinkedListNode* list1 = (LinkedListNode*)malloc(sizeof(LinkedListNode));
-        if (!list1) {
-            printf("Memory allocation failed\n");
-            return 1;
-        }
-        list1->data = 1;
-        list1->next = (LinkedListNode*)malloc(sizeof(LinkedListNode));
-        if (!list1->next) {
-            printf("Memory allocation failed\n");
-            free(list1);
-            return 1;
-        }
-        list1->next->data = 2;
-        list1->next->next = NULL;
+        // Create Linked List
+        LinkedListNode* list1 = new LinkedListNode(1);
+        list1->next = new LinkedListNode(2);
 
-        LinkedListNode* list2 = (LinkedListNode*)malloc(sizeof(LinkedListNode));
-        if (!list2) {
-            printf("Memory allocation failed\n");
-            free(list1->next);
-            free(list1);
-            return 1;
-        }
-        list2->data = 3;
-        list2->next = (LinkedListNode*)malloc(sizeof(LinkedListNode));
-        if (!list2->next) {
-            printf("Memory allocation failed\n");
-            free(list2);
-            free(list1->next);
-            free(list1);
-            return 1;
-        }
-        list2->next->data = 4;
-        list2->next->next = NULL;
+        LinkedListNode* list2 = new LinkedListNode(3);
+        list2->next = new LinkedListNode(4);
 
         LinkedListNode* combined_list = CombineMemoryLists(list1, list2);
 
         LinkedListNode* current = combined_list;
         while (current != NULL) {
-            printf("%d\n", current->data);
+            std::cout << current->data << std::endl;
             current = current->next;
         }
 
-        //FreeLinkedList(combined_list);
-        //FreeLinkedList(list2);
-        //FreeLinkedList(list1);
+        delete combined_list;
     }
 
     // Debug Print
